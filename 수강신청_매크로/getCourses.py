@@ -121,7 +121,7 @@ class GetCourses:
 
         start_bt = driver.find_element(By.CLASS_NAME, 'btnStart')
         start_bt.click()
-        time.sleep(0.5)
+        time.sleep(1)
 
         self.tryGetLecture()
 
@@ -141,40 +141,71 @@ class GetCourses:
         모든 강의를 잡으면 종료한다.
         '''
         
-        table_tr = self.driver.find_elements(By.XPATH, '//*[@id="GridBasket"]/tbody/tr')
+        # table_tr = self.driver.find_elements(By.XPATH, '//*[@id="GridBasket"]/tbody/tr')
+        
+        # 수강바구니 목록 # 이걸로 하니까 안됨 -_- 
+        lectureNames = self.driver.find_elements(By.XPATH, '//*[@id="GridBasket"]/tbody/tr/td[2]')
+        lectureNames = [x.text for x in lectureNames]
+        lectureBtns = self.driver.find_elements(By.XPATH, '//*[@id="GridBasket"]/tbody/tr/td[1]/button')
+        
+        for i in range(len(lectureBtns)):
+            print(f"{lectureNames[i]} : {lectureBtns[i]}")
+
+        print()
+        print()
+        print()
+        print(lectureNames)
+
         elementNum = 1
 
         #아래는 반복문 횟수를 보기위한 단순한 변수
         iters = 0
+        reset = False # 수강신청이 성공했다면 반복을 초기화 하는 변수
 
-        while len(table_tr) != 1:
-            reset = False # 수강신청이 성공했다면 반복을 초기화 하는 변수
+        # while len(table_tr) != 1:
+        while len(lectureBtns) != 1:
+            
 
             for i in range(2):
                 #과목명 변수
-                lectureName = self.driver.find_element(By.XPATH, '//*[@id="GridBasket"]/tbody/tr[@id="{}"]/td[2]'.format(elementNum)).text
-                selectBtn = self.driver.find_element(By.XPATH, '//*[@id="GridBasket"]/tbody/tr[@id="{}"]/td[1]/button'.format(elementNum))                
-                selectBtn.click()
+                # lectureName = self.driver.find_element(By.XPATH, '//*[@id="GridBasket"]/tbody/tr[@id="{}"]/td[2]'.format(elementNum)).text
+                # selectBtn = self.driver.find_element(By.XPATH, '//*[@id="GridBasket"]/tbody/tr[@id="{}"]/td[1]/button'.format(elementNum))                
+                # selectBtn.click()
+
+                lectureBtns[elementNum].click()
 
                 ## 테스트를 위한 확인 출력문
-                print(lectureName, f": 클릭함 {iters}-{i}")         
+                # print(lectureName, f": 클릭함 {iters}-{i}")   
+                print(lectureNames[elementNum], f": 클릭함 {iters}-{i}")
+                time.sleep(2)
+
                 # time.sleep(0.1)
                 # 알림창이 있는 지 검사
-                while True: # 알림창이 계속 있으면 없을 때까지 반복
-                    reset = self.checkAlert()
-                    if reset == False:
-                        break
-
+                # while True: # 알림창이 계속 있으면 없을 때까지 반복
+                #     reset = self.checkAlert()
+                #     if reset == False:
+                #         break
+            print("+++++ 여기는 도달했을까?")
             if reset == True: 
                 # 수강신청이 성공했다면 페이지가 리셋되고, 테이블이 변경되었을 것이다.
                 # 따라서 테이블 요소를 다시 가져와야 한다. 
-                table_tr = driver.find_elements(By.XPATH, '//*[@id="GridBasket"]/tbody/tr')
+                # table_tr = driver.find_elements(By.XPATH, '//*[@id="GridBasket"]/tbody/tr')
 
-                self.sendMessage(lectureName) # 슬랙봇으로 메시지 출력
-                print(f"<{lectureName}> 수강신청 성공~!")
+                # self.sendMessage(lectureName) # 슬랙봇으로 메시지 출력
+                # print(f"<{lectureName}> 수강신청 성공~!")
+                
+                
+                self.sendMessage(lectureNames[elementNum]) # 슬랙봇으로 메시지 출력
+                print(f"<{lectureNames[elementNum]}> 수강신청 성공~!")
+
+                del lectureBtns[elementNum]
+                del lectureNames[elementNum]
+
+                reset = False
+
             else:
                 elementNum += 1 #tr 을 하나씩 넘김
-                if elementNum > len(table_tr)-1: # 접근하는 tr 원소의 숫자가 테이블의 최대 숫자보다 크다면
+                if elementNum > len(lectureBtns): # 접근하는 tr 원소의 숫자가 테이블의 최대 숫자보다 크다면
                     elementNum = 1 # 1로 초기화. 즉 다시 처음부터 돌라는 말.
 
             iters += 1
