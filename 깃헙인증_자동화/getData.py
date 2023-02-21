@@ -71,6 +71,7 @@ class AutoCommitWithChatGPT:
         login_url = "https://www.acmicpc.net/login?next=%2Fsso%3Fsso%3Dbm9uY2U9YTM5YWVhYTk4MWNhYjU1YWEwZDRlZDQ4Nzc3NzEzOGM%253D%26sig%3D1ca260b9abbbe4df2b002254dd94a7f31b373ff0270b243408963284f8fcd7a1%26redirect%3Dhttps%253A%252F%252Fsolved.ac%252Fapi%252Fv3%252Fauth%252Fsso%253Fprev%253D%25252F"
         driver.get(login_url)
 
+        
         wait.until(
             EC.presence_of_all_elements_located((By.XPATH, '//*[@id="login_form"]/div[2]/input'))
         )
@@ -92,12 +93,26 @@ class AutoCommitWithChatGPT:
         login_bt_2 = driver.find_element(By.XPATH, '//*[@id="login_form"]/div[4]/div[2]/a')
         login_bt_2.click()
 
-    def getSolvedData(url):
+        
+    def getSolvedData():
         '''
         솔브드에 접근한 뒤 해결하지 않은 문제 정보를 가져옴
         '''
-        driver.get()
+        solved_url = 'https://solved.ac/problems/level/2'
+        driver.get(solved_url)
 
+        wait.until(
+            EC.presence_of_all_elements_located((By.CLASS_NAME, 'css-1raije9'))
+        )
+
+        numbers = driver.find_elements(By.CLASS_NAME, 'css-1raije9')
+        names = driver.find_elements(By.CLASS_NAME, '__Latex__')
+        
+        # 이미 해결한 문제 idx 찾기
+
+        SolvedIndex = [idx for idx, x in enumerate(numbers) if 'ac' in x.get_attribute('class')]
+
+        # numbers와 names에서 해결한 문제를 제거.
 
 
 
