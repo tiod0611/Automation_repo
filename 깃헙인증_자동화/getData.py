@@ -119,7 +119,7 @@ class AutoCommitWithChatGPT:
 
 if __name__ == '__main__':
 
-    with open('info.json', r) as json:
+    with open('info.json', 'r') as json:
         data = json.load()
         id = data['id']
         pw = data['pw']
