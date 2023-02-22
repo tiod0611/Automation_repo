@@ -40,7 +40,7 @@ class DBUpdater:
 
         self.conn = pymysql.connect(host='127.0.0.1', user='root', password=db_pw, db='autoGitCheck', charset='utf8')
 
-        with self.conn.cursur() as curs:
+        with self.conn.cursor() as curs:
             sql='''
             CREATE TABLE IF NOT EXISTS baekjoon_info(
                 number INT,
@@ -98,55 +98,57 @@ class DBUpdater:
     def read_solved(self):
         '''
         솔브드 레벨을 순회하며 문제 정보를 스크래핑한다.
+
+
+        ### 에러 발생
+        로그인을 driver로 했기 때문에 계속 selenium을 사용해야 한다. requests대신 driver.pasge_source로 파싱하자.
         '''
-        headers={'User-agent': user_agent}
 
         max_level = 15
 
         for level in range(1, max_level+1):
             # 각 레벨의 1페이지에 접속하고 html 텍스트 정보를 파싱함
             url = f'https://solved.ac/problems/level/{level}'
-            html = BeautifulSoup(requests.get(url, headers=headers).text, 'lxml')
+            driver.get(url)
+            html = BeautifulSoup(driver.page_source, 'lxml')
 
             # 마지막 페이지 번호 추출
-            last_page = html.find_all('a', attrs={'class':'css-1yjorof'})[-1].text
+            last_page = int(html.find_all('a', {'class':'css-1yjorof'})[-1].text)
 
             # 1페이지의 데이터를 수집함.
             df = pd.DataFrame(columns=['number', 'title','isSolved', 'level'])
 
             rows = html.find_all('tr', {'class':'css-1ojb0xa'})
             
-            for row in range(len(rows)):
+            for row in range(1, len(rows)):
                 info = rows[row].find_all('a', {'class':'css-q9j30p'})
                 number = info[0].find('span').text
                 title = info[1].find('span', {'class':'__Latex__'}).text
-                isSolved = True if row.find_all('span', {'class':'ac'}) else False
+                isSolved = True if rows[row].find_all('span', {'class':'ac'}) else False
 
                 # 데이터 삽입
                 df.loc[len(df)] = [number, title, isSolved, level]
-
-                print(df.loc[len(df)])
 
 
             # 2페이지부터 순회하며 데이터 수집
             for page in range(2, last_page + 1):
                 pg_url = f'?page={page}'
-                html = BeautifulSoup(requests.get(url+pg_url, headers=headers).text, 'lxml')
+                driver.get(url+pg_url)
+                html = BeautifulSoup(driver.page_source, 'lxml')
 
                 rows = html.find_all('tr', {'class':'css-1ojb0xa'})
 
-                for row in range(len(rows)):
+                for row in range(1, len(rows)):
                     info = rows[row].find_all('a', {'class':'css-q9j30p'})
                     number = info[0].find('span').text
                     title = info[1].find('span', {'class':'__Latex__'}).text
                     isSolved = True if rows[row].find_all('span', {'class':'ac'}) else False
+                    
 
                     # 데이터 삽입
                     df.loc[len(df)] = [number, title, isSolved, level]
-
-                    print(df.loc[len(df)])
-
-            return df
+                    
+        return df
 
 
 
