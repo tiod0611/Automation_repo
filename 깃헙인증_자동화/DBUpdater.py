@@ -54,6 +54,9 @@ class DBUpdater:
             curs.execute(sql)
 
         self.conn.commit()
+
+        # 
+        self.conn.close()
         
     def __del__(self):
         '''
@@ -122,6 +125,8 @@ class DBUpdater:
                 # 데이터 삽입
                 df.loc[len(df)] = [number, title, isSolved, level]
 
+                print(df.loc[len(df)])
+
 
             # 2페이지부터 순회하며 데이터 수집
             for page in range(2, last_page + 1):
@@ -139,26 +144,20 @@ class DBUpdater:
                     # 데이터 삽입
                     df.loc[len(df)] = [number, title, isSolved, level]
 
+                    print(df.loc[len(df)])
+
             return df
 
 
 
-            # 해당 레벨이 몇번째 페이지까지 존재 하는 지 확인.
-
-
-
-
-
-        pass
-
-
-
 if __name__ == '__main__':
-    with open('info.json', 'r') as json:
-        data = json.load()
+    with open('info.json', 'r') as file:
+        data = json.load(file)
         db_pw = data['db_info']['pw']
 
         id = data['user_info']['id']
         pw = data['user_info']['pw']
 
     dbupdater = DBUpdater(db_pw, id, pw)
+    dbupdater.login_solved()
+    dbupdater.read_solved()
