@@ -24,8 +24,6 @@ options.add_argument('user-agent=' + user_agent)
 
 
 
-
-
 class DBUpdater:
 
     def __init__(self, db_pw, id, pw):
@@ -47,6 +45,7 @@ class DBUpdater:
                 title VARCHAR(20),
                 isSolved BOOLEAN,
                 level INT,
+                language CHAR(5),
                 PRIMARY KEY (number)
             ) DEFAULT CHARSET=utf8;
             
@@ -116,7 +115,7 @@ class DBUpdater:
             last_page = int(html.find_all('a', {'class':'css-1yjorof'})[-1].text)
 
             # 1페이지의 데이터를 수집함.
-            df = pd.DataFrame(columns=['number', 'title','isSolved', 'level'])
+            df = pd.DataFrame(columns=['number', 'title','isSolved', 'level', 'language'])
 
             rows = html.find_all('tr', {'class':'css-1ojb0xa'})
             
