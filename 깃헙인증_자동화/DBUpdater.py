@@ -7,6 +7,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 
+import re
 
 import pandas as pd
 
@@ -15,7 +16,7 @@ import pandas as pd
 global driver
 driver = webdriver.Chrome()
 global wait
-wait = WebDriverWait(driver, 10)
+wait = WebDriverWait(driver, 20)
 
 # User-Agent 설정
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
@@ -39,23 +40,20 @@ class DBUpdater:
         self.conn = pymysql.connect(host='127.0.0.1', user='root', password=db_pw, db='autoGitCheck', charset='utf8')
 
         with self.conn.cursor() as curs:
-            sql='''
+            sql="""
             CREATE TABLE IF NOT EXISTS baekjoon_info(
                 number INT,
                 title VARCHAR(20),
                 isSolved BOOLEAN,
                 level INT,
-                language CHAR(5),
+                language BOOLEAN,
                 PRIMARY KEY (number)
             ) DEFAULT CHARSET=utf8;
             
-            '''
+            """
             curs.execute(sql)
 
         self.conn.commit()
-
-        # 
-        self.conn.close()
         
     def __del__(self):
         '''
@@ -97,11 +95,17 @@ class DBUpdater:
     def read_solved(self):
         '''
         솔브드 레벨을 순회하며 문제 정보를 스크래핑한다.
-
-
-        ### 에러 발생
-        로그인을 driver로 했기 때문에 계속 selenium을 사용해야 한다. requests대신 driver.pasge_source로 파싱하자.
         '''
+        
+
+        def has_korean(text):
+            '''
+            텍스트에 한글을 포함하고 있는지 확인하는 코드
+            '''
+            # 한글 유니코드 범위: AC00-D7AF
+            korean_regex = re.compile("[\uac00-\ud7af]+")
+            return bool(korean_regex.search(text))
+
 
         max_level = 15
 
@@ -124,9 +128,10 @@ class DBUpdater:
                 number = info[0].find('span').text
                 title = info[1].find('span', {'class':'__Latex__'}).text
                 isSolved = True if rows[row].find_all('span', {'class':'ac'}) else False
+                language = has_korean(title)
 
                 # 데이터 삽입
-                df.loc[len(df)] = [number, title, isSolved, level]
+                df.loc[len(df)] = [number, title, isSolved, level, language]
 
 
             # 2페이지부터 순회하며 데이터 수집
@@ -142,12 +147,65 @@ class DBUpdater:
                     number = info[0].find('span').text
                     title = info[1].find('span', {'class':'__Latex__'}).text
                     isSolved = True if rows[row].find_all('span', {'class':'ac'}) else False
-                    
+                    language = has_korean(title)
 
                     # 데이터 삽입
-                    df.loc[len(df)] = [number, title, isSolved, level]
+                    df.loc[len(df)] = [number, title, isSolved, level, language]
                     
         return df
+
+    # def replace_into_db(self, df):
+    #     '''
+    #     테이블에 데이터를 저장하고 변경하는 함수
+    #     mysql에서 REPLACE INTO는 INSERT보다 강력한 기능을 가지고 있다. 
+    #     이미 데이터가 있어도 오류가 발생하지 않고 변경된다는 점이다.
+
+    #     이 함수는 DB 칼럼명을 가변적으로 받는다. 이유는 2가지 케이스를 처리하기 위함이다.
+    #     case 1: DB에 새로운 데이터를 입력할 때는 전체 column에 대해서 데이터가 들어온다.
+    #     case 2: 문제를 해결하고 나면 isSolved column의 값을 바꿔줘야 하는데, 이때는 해당 column의 값만 들어온다. 
+
+    #     case별로 함수를 분리하여 만들 수도 있었지만 그냥 하나로 처리하는 방법으로 짜보기로 했다.
+
+    #     근데 안하는 게 낫겠다. 분리하는 게 훨씬 깔끔하다.
+    #     '''
+
+    #     # db의 column을 명시하기 위해 column 명을 만들어줌
+    #     columns = df.columns.to_list()
+    #     db_columns = [f"('{column}')" for column in columns]
+    #     db_columns = ', '.join(columns) # ('col1'), ('col2'), ('col3') 형식으로 나옴
+
+    #     with self.conn.cursor() as curs:
+    #         for data in df.itertuples(index=False):
+
+    def insert_int_db(self, df):
+        '''
+        데이터베이스의 데이터를 입력한다.
+        '''
+        with self.conn.cursor() as curs:
+            for r in df.itertuples():
+                sql=f"INSERT INTO baekjoon_info VALUES ('{r.number}'), ('{r.title}'), ({r.isSolved}), ({r.level}), ('{r.language}')"
+                curs.execute(sql)
+            
+            self.conn.commit()
+            print(f"[{len(df)}]개의 데이터 DB 저장 완료")
+
+    def update_isSolved(self, number):
+        '''
+        해결한 문제의 isSolved 값을 변경한다.
+        '''
+        with self.conn.cursor() as curs:
+            sql="""
+            UPDATE baekjoon_info
+            SET isSolved = True
+            WHERE number = {number};
+            """
+            curs.execute(sql)
+        
+        self.conn.commit()
+        print("f{number} 문제를 해결했습니다.")
+                
+
+
 
 
 
@@ -161,4 +219,5 @@ if __name__ == '__main__':
 
     dbupdater = DBUpdater(db_pw, id, pw)
     dbupdater.login_solved()
-    dbupdater.read_solved()
+    df = dbupdater.read_solved()
+    dbupdater.insert_int_db(df)
