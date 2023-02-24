@@ -48,7 +48,7 @@ class DBUpdater:
                 level INT,
                 language BOOLEAN,
                 PRIMARY KEY (number)
-            ) DEFAULT CHARSET=utf8;
+            );
             
             """
             curs.execute(sql)
@@ -204,10 +204,6 @@ class DBUpdater:
         self.conn.commit()
         print("f{number} 문제를 해결했습니다.")
                 
-
-
-
-
 
 if __name__ == '__main__':
     with open('info.json', 'r') as file:
