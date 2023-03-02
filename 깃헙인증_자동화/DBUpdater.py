@@ -12,19 +12,6 @@ import re
 import pandas as pd
 
 
-# 크롬 드라이버 설정
-global driver
-driver = webdriver.Chrome()
-global wait
-wait = WebDriverWait(driver, 20)
-
-# User-Agent 설정
-user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
-options = webdriver.ChromeOptions()
-options.add_argument('user-agent=' + user_agent)
-
-
-
 class DBUpdater:
 
     def __init__(self, db_pw, id, pw):
@@ -106,10 +93,10 @@ class DBUpdater:
             korean_regex = re.compile("[\uac00-\ud7af]+")
             return bool(korean_regex.search(text))
 
+        
+        max_level = 15 # 골드 1
 
-        max_level = 2
-
-        for level in range(2, max_level+1):
+        for level in range(1, max_level+1):
             # 각 레벨의 1페이지에 접속하고 html 텍스트 정보를 파싱함
             url = f'https://solved.ac/problems/level/{level}'
             driver.get(url)
@@ -177,14 +164,14 @@ class DBUpdater:
     #     with self.conn.cursor() as curs:
     #         for data in df.itertuples(index=False):
 
-    def insert_int_db(self, df):
+    def insert_into_db(self, df):
         '''
         데이터베이스의 데이터를 입력한다.
         '''
         with self.conn.cursor() as curs:
             for r in df.itertuples(index=False):
                 print(r)
-                sql=f"INSERT INTO problem_info VALUES ({r.number}, {r.title}, {r.isSolved}, {r.level}, {r.korean});"
+                sql=f"INSERT INTO problem_info VALUES ({r.number}, '{r.title}', {r.isSolved}, {r.level}, {r.korean});"
                 curs.execute(sql)
             
             self.conn.commit()
@@ -207,6 +194,17 @@ class DBUpdater:
                 
 
 if __name__ == '__main__':
+    # 크롬 드라이버 설정
+    global driver
+    driver = webdriver.Chrome()
+    global wait
+    wait = WebDriverWait(driver, 20)
+
+    # User-Agent 설정
+    user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
+    options = webdriver.ChromeOptions()
+    options.add_argument('user-agent=' + user_agent)
+
     with open('info.json', 'r') as file:
         data = json.load(file)
         db_pw = data['db_info']['pw']
@@ -217,5 +215,4 @@ if __name__ == '__main__':
     dbupdater = DBUpdater(db_pw, id, pw)
     dbupdater.login_solved()
     df = dbupdater.read_solved()
-    print(df)
-    dbupdater.insert_int_db(df)
+    dbupdater.insert_into_db(df)
