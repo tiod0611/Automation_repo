@@ -33,7 +33,6 @@ class DBUpdater:
                 title VARCHAR(40),
                 isSolved BOOLEAN,
                 level INT,
-                korean BOOLEAN,
                 PRIMARY KEY (number)
             );
             
@@ -114,11 +113,17 @@ class DBUpdater:
                 info = rows[row].find_all('a', {'class':'css-q9j30p'})
                 number = int(info[0].find('span').text)
                 title = info[1].find('span', {'class':'__Latex__'}).text
-                isSolved = True if rows[row].find_all('span', {'class':'ac'}) else False
+                
                 korean = has_korean(title)
+                
+                #한국어로 된 문제가 아니라면 저장하지 않고 패스한다.
+                if korean: 
+                    continue
+                isSolved = True if rows[row].find_all('span', {'class':'ac'}) else False
+                title = re.replace("'", '', title) # 따옴포를 제거함.
 
-                # 데이터 삽입
-                df.loc[len(df)] = [number, title, isSolved, level, korean]
+                #데이터 삽입
+                df.loc[len(df)] = [number, title, isSolved, level]
 
 
             # 2페이지부터 순회하며 데이터 수집
@@ -133,11 +138,17 @@ class DBUpdater:
                     info = rows[row].find_all('a', {'class':'css-q9j30p'})
                     number = int(info[0].find('span').text)
                     title = info[1].find('span', {'class':'__Latex__'}).text
-                    isSolved = True if rows[row].find_all('span', {'class':'ac'}) else False
+                    
                     korean = has_korean(title)
+                    
+                    #한국어로 된 문제가 아니라면 저장하지 않고 패스한다.
+                    if korean: 
+                        continue
+                    isSolved = True if rows[row].find_all('span', {'class':'ac'}) else False
+                    title = re.replace("'", '', title) # 따옴포를 제거함.
 
-                    # 데이터 삽입
-                    df.loc[len(df)] = [number, title, isSolved, level, korean]
+                    #데이터 삽입
+                    df.loc[len(df)] = [number, title, isSolved, level]
         print("백준 문제 크롤링 완료")            
         return df
 
@@ -171,7 +182,7 @@ class DBUpdater:
         with self.conn.cursor() as curs:
             for r in df.itertuples(index=False):
                 print(r)
-                sql=f"INSERT INTO problem_info VALUES ({r.number}, '{r.title}', {r.isSolved}, {r.level}, {r.korean});"
+                sql=f"INSERT INTO problem_info VALUES ({r.number}, '{r.title}', {r.isSolved}, {r.level});"
                 curs.execute(sql)
             
             self.conn.commit()
