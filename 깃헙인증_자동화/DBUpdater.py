@@ -92,6 +92,7 @@ class DBUpdater:
             korean_regex = re.compile("[\uac00-\ud7af]+")
             return bool(korean_regex.search(text))
 
+        df = pd.DataFrame(columns=['number', 'title','isSolved', 'level'])
         
         max_level = 15 # 골드 1
 
@@ -105,7 +106,6 @@ class DBUpdater:
             last_page = int(html.find_all('a', {'class':'css-1yjorof'})[-1].text)
 
             # 1페이지의 데이터를 수집함.
-            df = pd.DataFrame(columns=['number', 'title','isSolved', 'level', 'korean'])
 
             rows = html.find_all('tr', {'class':'css-1ojb0xa'})
             
@@ -117,14 +117,13 @@ class DBUpdater:
                 korean = has_korean(title)
                 
                 #한국어로 된 문제가 아니라면 저장하지 않고 패스한다.
-                if korean: 
+                if korean == False: 
                     continue
                 isSolved = True if rows[row].find_all('span', {'class':'ac'}) else False
-                title = re.replace("'", '', title) # 따옴포를 제거함.
+                title = re.sub("'", '', title) # 따옴포를 제거함.
 
                 #데이터 삽입
                 df.loc[len(df)] = [number, title, isSolved, level]
-
 
             # 2페이지부터 순회하며 데이터 수집
             for page in range(2, last_page + 1):
@@ -142,10 +141,10 @@ class DBUpdater:
                     korean = has_korean(title)
                     
                     #한국어로 된 문제가 아니라면 저장하지 않고 패스한다.
-                    if korean: 
+                    if korean == False: 
                         continue
                     isSolved = True if rows[row].find_all('span', {'class':'ac'}) else False
-                    title = re.replace("'", '', title) # 따옴포를 제거함.
+                    title = re.sub("'", '', title) # 따옴포를 제거함.
 
                     #데이터 삽입
                     df.loc[len(df)] = [number, title, isSolved, level]
@@ -175,14 +174,14 @@ class DBUpdater:
     #     with self.conn.cursor() as curs:
     #         for data in df.itertuples(index=False):
 
-    def insert_into_db(self, df):
+    def replace_into_db(self, df):
         '''
         데이터베이스의 데이터를 입력한다.
         '''
         with self.conn.cursor() as curs:
             for r in df.itertuples(index=False):
                 print(r)
-                sql=f"INSERT INTO problem_info VALUES ({r.number}, '{r.title}', {r.isSolved}, {r.level});"
+                sql=f"REPLACE INTO problem_info VALUES ({r.number}, '{r.title}', {r.isSolved}, {r.level});"
                 curs.execute(sql)
             
             self.conn.commit()
@@ -226,4 +225,4 @@ if __name__ == '__main__':
     dbupdater = DBUpdater(db_pw, id, pw)
     dbupdater.login_solved()
     df = dbupdater.read_solved()
-    dbupdater.insert_into_db(df)
+    dbupdater.replace_into_db(df)
