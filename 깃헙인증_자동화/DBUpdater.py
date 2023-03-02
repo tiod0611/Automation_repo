@@ -43,12 +43,12 @@ class DBUpdater:
             sql="""
             CREATE TABLE IF NOT EXISTS baekjoon_info(
                 number INT,
-                title VARCHAR(20),
+                title VARCHAR(40),
                 isSolved BOOLEAN,
                 level INT,
-                language BOOLEAN,
+                korean BOOLEAN,
                 PRIMARY KEY (number)
-            ) DEFAULT CHARSET=utf8;
+            );
             
             """
             curs.execute(sql)
@@ -107,7 +107,7 @@ class DBUpdater:
             return bool(korean_regex.search(text))
 
 
-        max_level = 15
+        max_level = 1
 
         for level in range(1, max_level+1):
             # 각 레벨의 1페이지에 접속하고 html 텍스트 정보를 파싱함
@@ -119,19 +119,19 @@ class DBUpdater:
             last_page = int(html.find_all('a', {'class':'css-1yjorof'})[-1].text)
 
             # 1페이지의 데이터를 수집함.
-            df = pd.DataFrame(columns=['number', 'title','isSolved', 'level', 'language'])
+            df = pd.DataFrame(columns=['number', 'title','isSolved', 'level', 'korean'])
 
             rows = html.find_all('tr', {'class':'css-1ojb0xa'})
             
             for row in range(1, len(rows)):
                 info = rows[row].find_all('a', {'class':'css-q9j30p'})
-                number = info[0].find('span').text
+                number = int(info[0].find('span').text)
                 title = info[1].find('span', {'class':'__Latex__'}).text
                 isSolved = True if rows[row].find_all('span', {'class':'ac'}) else False
-                language = has_korean(title)
+                korean = has_korean(title)
 
                 # 데이터 삽입
-                df.loc[len(df)] = [number, title, isSolved, level, language]
+                df.loc[len(df)] = [number, title, isSolved, level, korean]
 
 
             # 2페이지부터 순회하며 데이터 수집
@@ -144,14 +144,14 @@ class DBUpdater:
 
                 for row in range(1, len(rows)):
                     info = rows[row].find_all('a', {'class':'css-q9j30p'})
-                    number = info[0].find('span').text
+                    number = int(info[0].find('span').text)
                     title = info[1].find('span', {'class':'__Latex__'}).text
                     isSolved = True if rows[row].find_all('span', {'class':'ac'}) else False
-                    language = has_korean(title)
+                    korean = has_korean(title)
 
                     # 데이터 삽입
-                    df.loc[len(df)] = [number, title, isSolved, level, language]
-                    
+                    df.loc[len(df)] = [number, title, isSolved, level, korean]
+        print("백준 문제 크롤링 완료")            
         return df
 
     # def replace_into_db(self, df):
@@ -182,8 +182,9 @@ class DBUpdater:
         데이터베이스의 데이터를 입력한다.
         '''
         with self.conn.cursor() as curs:
-            for r in df.itertuples():
-                sql=f"INSERT INTO baekjoon_info VALUES ('{r.number}'), ('{r.title}'), ({r.isSolved}), ({r.level}), ('{r.language}')"
+            for r in df.itertuples(index=False):
+                print(r)
+                sql=f"REPLACE INTO baekjoon_info(number, title, isSolved, level, korean) VALUES ({r.number}, {r.title}, {r.isSolved}, {r.level}, {r.korean});"
                 curs.execute(sql)
             
             self.conn.commit()
@@ -194,7 +195,7 @@ class DBUpdater:
         해결한 문제의 isSolved 값을 변경한다.
         '''
         with self.conn.cursor() as curs:
-            sql="""
+            sql=f"""
             UPDATE baekjoon_info
             SET isSolved = True
             WHERE number = {number};
@@ -204,10 +205,6 @@ class DBUpdater:
         self.conn.commit()
         print("f{number} 문제를 해결했습니다.")
                 
-
-
-
-
 
 if __name__ == '__main__':
     with open('info.json', 'r') as file:
@@ -220,4 +217,5 @@ if __name__ == '__main__':
     dbupdater = DBUpdater(db_pw, id, pw)
     dbupdater.login_solved()
     df = dbupdater.read_solved()
+    print(df)
     dbupdater.insert_int_db(df)
