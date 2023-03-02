@@ -37,11 +37,11 @@ class DBUpdater:
         self.id = id
         self.pw = pw
 
-        self.conn = pymysql.connect(host='127.0.0.1', user='root', password=db_pw, db='autoGitCheck', charset='utf8')
+        self.conn = pymysql.connect(host='127.0.0.1', user='root', password=db_pw, db='baekjoon', charset='utf8')
 
         with self.conn.cursor() as curs:
             sql="""
-            CREATE TABLE IF NOT EXISTS baekjoon_info(
+            CREATE TABLE IF NOT EXISTS problem_info(
                 number INT,
                 title VARCHAR(40),
                 isSolved BOOLEAN,
@@ -107,9 +107,9 @@ class DBUpdater:
             return bool(korean_regex.search(text))
 
 
-        max_level = 1
+        max_level = 2
 
-        for level in range(1, max_level+1):
+        for level in range(2, max_level+1):
             # 각 레벨의 1페이지에 접속하고 html 텍스트 정보를 파싱함
             url = f'https://solved.ac/problems/level/{level}'
             driver.get(url)
@@ -184,7 +184,7 @@ class DBUpdater:
         with self.conn.cursor() as curs:
             for r in df.itertuples(index=False):
                 print(r)
-                sql=f"REPLACE INTO baekjoon_info(number, title, isSolved, level, korean) VALUES ({r.number}, {r.title}, {r.isSolved}, {r.level}, {r.korean});"
+                sql=f"INSERT INTO problem_info VALUES ({r.number}, {r.title}, {r.isSolved}, {r.level}, {r.korean});"
                 curs.execute(sql)
             
             self.conn.commit()
@@ -196,7 +196,7 @@ class DBUpdater:
         '''
         with self.conn.cursor() as curs:
             sql=f"""
-            UPDATE baekjoon_info
+            UPDATE problem_info
             SET isSolved = True
             WHERE number = {number};
             """
