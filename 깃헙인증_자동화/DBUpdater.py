@@ -1,3 +1,9 @@
+'''
+DB에 데이터를 저장하거나, 데이터 변경을 진행하는 코드.
+
+> 추후에 크롤링 부분을 따로 분리할 예정임.
+'''
+
 import json
 import pymysql
 import re
@@ -225,3 +231,4 @@ if __name__ == '__main__':
     dbupdater.login_solved()
     df = dbupdater.read_solved()
     dbupdater.replace_into_db(df)
+

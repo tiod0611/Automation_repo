@@ -1,0 +1,11 @@
+{
+	"db_info" : {
+		"pw":""},
+		"user_info" : {
+			"id" : "",
+			"pw" : ""
+		},
+	"openai-api":{
+		"key":""
+	}
+}
