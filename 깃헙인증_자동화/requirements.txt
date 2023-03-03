@@ -1,0 +1,5 @@
+pymysql
+selenium
+beautifulsoup4
+pandas
+requests

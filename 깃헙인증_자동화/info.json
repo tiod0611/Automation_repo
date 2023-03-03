@@ -4,5 +4,8 @@
 	"user_info" : {
 	"id" : "gyul611",
 	"pw" : "asas5874"
+	},
+	"openai-api":{
+		"key":"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"
 	}
 }
