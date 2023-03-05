@@ -1,4 +1,34 @@
 '''
-getData.py에서 가져온 문제 정보를 ChatGPT로 전송하고 그 결과를 가져와서 원하는 경로에 저장하는 코드임.
 
 '''
+import json
+import pandas as pd
+
+
+from DBUpdater import DBUpdater
+from crawler import Crawler
+
+def getBaekjoonData():
+    crawler.login_solved()
+    df = crawler.read_solved()
+    
+    return df
+
+def updateDBBaekjoon(df):
+    dbupdater.replace_into_db(df)
+
+if __name__=='__main__':
+
+    with open('info.json', 'r') as file:
+        data = json.load(file)
+        db_pw = data['db_info']['pw']
+
+        id = data['user_info']['id']
+        pw = data['user_info']['pw']
+    global dbupdater
+    dbupdater = DBUpdater(db_pw)
+    global crawler
+    crawler = Crawler(id, pw)
+
+    getBaekjoonData()
+
