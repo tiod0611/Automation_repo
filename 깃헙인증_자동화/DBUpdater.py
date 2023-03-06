@@ -4,9 +4,7 @@ DB에 데이터를 저장하거나, 데이터 변경을 진행하는 코드.
 > 추후에 크롤링 부분을 따로 분리할 예정임.
 '''
 
-import json
 import pymysql
-
 import pandas as pd
 
 
@@ -73,17 +71,39 @@ class DBUpdater:
         '''
         해결한 문제의 isSolved 값을 변경한다.
         '''
+
         with self.conn.cursor() as curs:
+            sql=f"SELECT my_attempt FROM attempt WHERE number={number}"
+            curs.execute(sql)
+            my_attempt = curs.fetchone()
+
             sql=f"""
             UPDATE attempt
             SET isSolved = True
-            SET my_attempt = {여기서 변수 어떻게 줘야하지}
+            SET my_attempt = {my_attempt + 1}
             WHERE number = {number};
             """
             curs.execute(sql)
         
         self.conn.commit()
         print("f{number} 문제를 해결했습니다.")
+
+    def select_problem(self):
+        '''
+        해결할 문제를 선택하는 함수
+        '''
+        with self.conn.cursor() as curs:
+            sql=f"""
+            SELECT problem_info.number, title
+            FROM problem_info
+            INNER JOIN attempt
+            ON problem_info.number = attempt.number 
+            WHERE attempt.isSolved = False AND problem.g_attempt > 5000
+            """
+
+            df = pd.read_sql(sql, self.conn)
+            return df
+
                 
 
 

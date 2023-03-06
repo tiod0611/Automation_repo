@@ -2,7 +2,6 @@
 
 '''
 import json
-import pandas as pd
 
 
 from DBUpdater import DBUpdater
