@@ -102,7 +102,7 @@ class Crawler:
                 if korean == False: 
                     continue
 
-                attempt = rows[row].find_all('div', {'class':'css-1ujcjo0'}).text
+                attempt = rows[row].find('div', {'class':'css-1ujcjo0'}).text
                 attempt = int(attempt.replace(",", ''))
                 isSolved = True if rows[row].find_all('span', {'class':'ac'}) else False
                 title = re.sub("'", "''", title) # 따옴표를 ''로 변경함.
@@ -128,13 +128,13 @@ class Crawler:
                     if korean == False: 
                         continue
                     
-                    attempt = rows[row].find_all('div', {'class':'css-1ujcjo0'}).text
+                    attempt = rows[row].find('div', {'class':'css-1ujcjo0'}).text
                     attempt = int(attempt.replace(",", ''))
                     isSolved = True if rows[row].find_all('span', {'class':'ac'}) else False
                     title = re.sub("'", "''", title) # 따옴표를 ''로 변경함.
 
                     #데이터 삽입
-                    df.loc[len(df)] = [number, title, isSolved, level]
-        print("백준 문제 크롤링 완료")            
+                    df.loc[len(df)] = [number, title, isSolved, level, attempt]
+        print("백준 문제 크롤링 완료. 총 문제 수 : ", len(df))            
         return df
 

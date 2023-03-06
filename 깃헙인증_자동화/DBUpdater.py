@@ -24,7 +24,7 @@ class DBUpdater:
                 number INT,
                 title VARCHAR(40),
                 level INT,
-                g_attempt Int,
+                g_attempt INT,
                 PRIMARY KEY (number)
             );
             
@@ -57,7 +57,7 @@ class DBUpdater:
         with self.conn.cursor() as curs:
             for r in df.itertuples(index=False):
                 print(r)
-                sql=f"REPLACE INTO problem_info VALUES ({r.number}, '{r.title}', {r.level});"
+                sql=f"REPLACE INTO problem_info VALUES ({r.number}, '{r.title}', {r.level}, {r.attempt});"
                 curs.execute(sql)
 
                 sql=f"REPLACE INTO attempt VALUES ({r.number}, 0, {r.isSolved});"
