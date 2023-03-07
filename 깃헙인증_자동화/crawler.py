@@ -135,6 +135,7 @@ class Crawler:
 
                     #데이터 삽입
                     df.loc[len(df)] = [number, title, isSolved, level, attempt]
-        print("백준 문제 크롤링 완료. 총 문제 수 : ", len(df))            
+        print("백준 문제 크롤링 완료. 총 문제 수 : ", len(df))      
+        self.driver.quit()      
         return df
 

@@ -73,38 +73,53 @@ class DBUpdater:
         '''
 
         with self.conn.cursor() as curs:
-            sql=f"SELECT my_attempt FROM attempt WHERE number={number}"
-            curs.execute(sql)
-            my_attempt = curs.fetchone()
 
             sql=f"""
             UPDATE attempt
             SET isSolved = True
-            SET my_attempt = {my_attempt + 1}
             WHERE number = {number};
             """
             curs.execute(sql)
         
         self.conn.commit()
-        print("f{number} 문제를 해결했습니다.")
+        print(f"{number} 문제를 해결했습니다.")
 
     def select_problem(self):
         '''
         해결할 문제를 선택하는 함수
+        return number, title
         '''
         with self.conn.cursor() as curs:
             sql=f"""
-            SELECT problem_info.number, title
+            SELECT problem_info.number, title, problem_info.g_attempt
             FROM problem_info
             INNER JOIN attempt
             ON problem_info.number = attempt.number 
-            WHERE attempt.isSolved = False AND problem.g_attempt > 5000
+            WHERE attempt.isSolved = False AND problem_info.g_attempt > 5000 AND my_attempt < 4;
             """
 
             df = pd.read_sql(sql, self.conn)
-            return df
+            df.sort_values('g_attempt', ascending=False, inplace=True)
+            number = df.loc[0].number
+            title = df.loc[0].title
 
-                
+            return number, title
+
+    def plus_attempt(self, number):
+        '''
+        시도할 문제를 꺼냈다면 
+        attempt 테이블의 my_attempt(시도 횟수)를 + 1 갱신한다.
+        '''         
+        with self.conn.cursor() as curs:
+            sql=f"SELECT my_attempt FROM attempt WHERE number={number}"
+            curs.execute(sql)
+            my_attempt = curs.fetchone()[0]
+
+            sql=f"UPDATE attempt SET my_attempt = {my_attempt+1} WHERE number={number}"
+
+            curs.execute(sql)
+        self.conn.commit()
+        print(f"{number}문제의 시도 횟수: {my_attempt+1}")
 
 
 

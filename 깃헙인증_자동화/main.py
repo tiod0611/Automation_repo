@@ -3,17 +3,16 @@
 '''
 import json
 
-
 from DBUpdater import DBUpdater
 from crawler import Crawler
 
-def getBaekjoonData():
+def getBaekjoonData(crawler):
     crawler.login_solved()
     df = crawler.read_solved()
     
     return df
 
-def updateDBBaekjoon(df):
+def updateDBBaekjoon(dbupdater, df):
     dbupdater.replace_into_db(df)
 
 if __name__=='__main__':
@@ -24,10 +23,11 @@ if __name__=='__main__':
 
         id = data['user_info']['id']
         pw = data['user_info']['pw']
-    global dbupdater
-    dbupdater = DBUpdater(db_pw)
-    global crawler
-    crawler = Crawler(id, pw)
+    
+    # if 데이터베이스를 생성하고 데이터를 채운다면 아래를 실행하게 만들어야함. 
+    # dbupdater = DBUpdater(db_pw)
+    # crawler = Crawler(id, pw)
 
-    getBaekjoonData()
+    # df = getBaekjoonData(crawler)
+    # updateDBBaekjoon(dbupdater, df)
 
