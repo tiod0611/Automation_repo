@@ -12,7 +12,10 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
+
+import time
 
 
 # User-Agent 설정
@@ -139,3 +142,38 @@ class Crawler:
         self.driver.quit()      
         return df
 
+
+    def summit_solution(self, number, solution):
+        '''
+        백준 문제에 접근하여 문제를 제출함
+        '''
+        solution_lines = solution.split('\n')
+
+
+        summit_url = f'https://www.acmicpc.net/submit/{number}'
+
+        self.driver.get(summit_url) # 문제 제출 페이지에 접근
+
+        self.driver.find_element(By.XPATH, '//*[@id="submit_form"]/div[2]/div/div[3]/label').click()
+
+        # 코드 작성
+        self.driver.find_element(By.XPATH, '//*[@id="submit_form"]/div[3]/div/div/div[6]').click()
+        textarea = self.driver.find_element(By.XPATH, '//*[@id="submit_form"]/div[3]/div/div/div[1]/textarea') 
+        for line in solution_lines:
+            line = re.sub('    ','\\t', line)
+            textarea.send_keys(line+'\n')
+
+        
+        ### 문제 발생 ###
+        # 백준 사이트는 들여쓰기 이후 줄바꿈을 하면 문장의 시작이 들여쓰기 한 부분에서 되도록했다.
+        # 이 때문에 send_keys()로 제출하면 들여쓰기가 엉망이된다. 이 부분을 해결해야 한다.
+
+        # # 코드 제출
+        # self.driver.find_element(By.XPATH, '//*[@id="submit_button"]').click()
+        
+        # # 제출 결과 확인
+        ## IDEA : tr[1]/td[4]/span의 text를 확인하고 "채점 중" 이란 단어가 있으면 기다린다
+        ## 해당 단어가 사라지고 정답 표시가 있으면 정답을 그 외의 문제가 있으면 오답으로 처리하자. 
+
+        # result = self.driver.find_element(By.XPATH, '//*[@id="status-table"]/tbody/tr[1]/td[4]/span').text
+        # print(result)

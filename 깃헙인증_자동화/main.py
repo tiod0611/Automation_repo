@@ -29,14 +29,21 @@ def get_solution_baekjoon_with_GPT(dbupdater, runGPT):
             설명도 작성 하지마.
             코드만 작성해줘.
             """
-    result_code = runGPT.run(query)
+    solution = runGPT.run(query)
+
+
+    print()
+    print("GPT: 해결책을 드렸습니다.")
+    return solution, number
+
+def summit(crawler, number, solution):
+    crawler.login_solved()
+    crawler.summit_solution(number, solution)
 
     # 아래 코드는 백준에 제출 후, 정답이 나올 때 저장하도록 하자. 
     # with open(f'{number}_solution.py', 'w') as f:
     #     f.write(result_code)
     
-    print("GPT: 해결책을 드렸습니다.")
-    return result_code
 
 
 if __name__=='__main__':
@@ -63,13 +70,15 @@ if __name__=='__main__':
         df = getBaekjoonData(crawler)
         updateDBBaekjoon(dbupdater, df)
 
-    result = get_solution_baekjoon_with_GPT(dbupdater, runGPT)
+    solution, number = get_solution_baekjoon_with_GPT(dbupdater, runGPT)
 
 
     # 이제부터 백준 사이트 자동화를 진행해야 함. 
     """
     로그인-문제 접근-언어 변경 및 제출- 결과 확인 - 틀릴 경우 반복(최대 3번)/맞은 경우 코드 저장
     """
+    crawler = Crawler(id, pw)
+    summit(crawler, number, solution)
 
     # 이제는 결과물을 자동으로 commit할 차례! 
     """

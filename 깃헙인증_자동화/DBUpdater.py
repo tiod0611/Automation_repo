@@ -103,6 +103,7 @@ class DBUpdater:
             number = df.loc[0].number
             title = df.loc[0].title
 
+            print(f"이번에 풀이할 문제는 '{number}', '{title}'입니다.")
             return number, title
 
     def plus_attempt(self, number):

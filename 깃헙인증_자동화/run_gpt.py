@@ -8,11 +8,13 @@ class RunGPT:
     def __init__(self, key):
         openai.api_key = key
 
-    def run(query):
+    def run(self, query):
         response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[{"role":"user", "content":query}]
         )
-        result = response['choices'][0]['message']['content']
+        solution = response['choices'][0]['message']['content']
 
-        return result
+        print('제공된 solution은 다음과 같습니다.')
+        print(solution)
+        return solution
