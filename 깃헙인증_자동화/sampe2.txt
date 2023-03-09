@@ -1,0 +1,14 @@
+
+for num in map(int, input().split()):
+    while True:
+        if queue[0] == num: # 뽑아내려고 하는 수가 큐 맨 앞에 있을 때
+            queue.popleft() # 큐에서 뽑아냄
+            break
+        else:
+            if queue.index(num) <= len(queue)//2: # 뽑아내려는 수의 위치가 중간보다 왼쪽에 있을 때
+                queue.rotate(-1) # 왼쪽으로 회전
+                count += 1
+            else: # 뽑아내려는 수의 위치가 중간보다 오른쪽에 있을 때
+                queue.rotate(1) # 오른쪽으로 회전
+                count += 1
+print(count)

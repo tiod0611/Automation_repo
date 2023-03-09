@@ -159,9 +159,24 @@ class Crawler:
         # 코드 작성
         self.driver.find_element(By.XPATH, '//*[@id="submit_form"]/div[3]/div/div/div[6]').click()
         textarea = self.driver.find_element(By.XPATH, '//*[@id="submit_form"]/div[3]/div/div/div[1]/textarea') 
+        
+        times = 1 # 들여쓰기 발생 횟수를 기록
+        flag = False # 들여쓰기가 최초 발생했다면 True
         for line in solution_lines:
-            line = re.sub('    ','\\t', line)
             textarea.send_keys(line+'\n')
+            # if flag:
+            #     for i in range(4):
+            #         textarea.send_keys(Keys.BACK_SPACE)
+
+            if re.search(':', line) or flag:
+                for i in range(4 * times):
+                    textarea.send_keys(Keys.BACKSPACE)
+                times += 1
+                flag = True
+                
+            
+        time.sleep(30)
+
 
         
         ### 문제 발생 ###
