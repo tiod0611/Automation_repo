@@ -95,7 +95,7 @@ class DBUpdater:
             FROM problem_info
             INNER JOIN attempt
             ON problem_info.number = attempt.number 
-            WHERE attempt.isSolved = False AND problem_info.g_attempt > 5000 AND my_attempt < 4;
+            WHERE attempt.isSolved = False AND problem_info.g_attempt > 5000 AND my_attempt < 3;
             """
 
             df = pd.read_sql(sql, self.conn)

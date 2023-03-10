@@ -2,7 +2,6 @@
 
 '''
 import json
-import subprocess
 import os
 
 from DBUpdater import DBUpdater
@@ -17,11 +16,11 @@ def getBaekjoonData(crawler):
     
     return df
 
-def updateDBBaekjoon(dbupdater, df):
+def updateDBBaekjoon(df):
     dbupdater.replace_into_db(df)
 
 
-def get_solution_baekjoon_with_GPT(dbupdater, runGPT):
+def get_solution_baekjoon_with_GPT():
     number, title = dbupdater.select_problem() # DB에서 적정 문제 가져오기
 
     query = f"""
@@ -39,19 +38,34 @@ def get_solution_baekjoon_with_GPT(dbupdater, runGPT):
     return solution, number
     
 def summit(crawler, number, solution):
-    for _ in range(3):  
-        dbupdater.plus_attempt(number)
-        result = crawler.summit_solution(number, solution)
-        if result: # 결과가 정답이라면 저장
-            dbupdater.update_isSolved(number)
-            save_to_py(number, solution)
-            break
+    dbupdater.plus_attempt(number)
+        
+    result = crawler.summit_solution(number, solution)
+    if result: # 결과가 정답이라면 저장
+        dbupdater.update_isSolved(number)
+        save_to_py(number, solution)
+        return True
+    else:
+        get_solution_and_summit(crawler)
+
+def get_solution_and_summit(crawler):
+    solution, number = get_solution_baekjoon_with_GPT()
+
+    """
+    로그인-문제 접근-언어 변경 및 제출- 결과 확인 - 틀릴 경우 반복(최대 3번)/맞은 경우 코드 저장
+    """
+
+    
+    return summit(crawler, number, solution)
+
 
 def save_to_py(number, solution):
-    path = f"C:/Users/Kyeul/Desktop/code/GPT_자동화_저장소/{number}.py"
+    path = f"C:/Users/Kyeul/Desktop/code/baekjoon_gpt_solution/{number}.py"
 
     with open(path, 'w', encoding='utf8') as f:
         f.write(solution)
+
+    print(f"코드 결과물 '{number}.py'로 저장함")        
 
 if __name__=='__main__':
 
@@ -68,7 +82,9 @@ if __name__=='__main__':
 
         key = data['openai-api']['key']
     
+    global dbupdater
     dbupdater = DBUpdater(db_pw)
+    global runGPT
     runGPT = RunGPT(key)
 
     # 데이터베이스를 업데이트 한다면 
@@ -77,25 +93,14 @@ if __name__=='__main__':
         df = getBaekjoonData(crawler)
         updateDBBaekjoon(dbupdater, df)
 
-    
-    solution, number = get_solution_baekjoon_with_GPT(dbupdater, runGPT)
-
-    # 이제부터 백준 사이트 자동화를 진행해야 함. 
-    """
-    로그인-문제 접근-언어 변경 및 제출- 결과 확인 - 틀릴 경우 반복(최대 3번)/맞은 경우 코드 저장
-    # 제출을 진행하지 않는다.
-    """
     crawler = Crawler(id, pw)
     crawler.login_solved()
-    summit(crawler, number, solution)
+    for _ in range(3):
+        isSolved = get_solution_and_summit(crawler)
+        if isSolved: # 정답이라면 commit~!
+            os.system("start cmd /k git_command.bat")
+            os.system("exit")
+            print('Github Commit도 완료!')
+            break
 
-
-    # 이제는 결과물을 자동으로 commit할 차례! 
-    """
-    batch 파일을 사용해 commit하기 - url링크를 슬랙봇으로 전송하기
-    """
-    # batch_file = './git_command.bat'
-    # result = subprocess.run(batch_file, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-
-    # print(result.stdout.decode('cp949'))
-    os.system("start cmd /k ./git_command.bat")
+    
