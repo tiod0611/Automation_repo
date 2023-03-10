@@ -146,6 +146,8 @@ class Crawler:
     def summit_solution(self, number, solution):
         '''
         백준 문제에 접근하여 문제를 제출함
+        
+        실제 적용에 문제가 있음. 추후에 다시 다루도록 하자. 
         '''
         solution_lines = solution.split('\n')
 
@@ -156,26 +158,17 @@ class Crawler:
 
         self.driver.find_element(By.XPATH, '//*[@id="submit_form"]/div[2]/div/div[3]/label').click()
 
-        # 코드 작성
+        # 코드 작성을 위해 입력창을 클릭함
         self.driver.find_element(By.XPATH, '//*[@id="submit_form"]/div[3]/div/div/div[6]').click()
         textarea = self.driver.find_element(By.XPATH, '//*[@id="submit_form"]/div[3]/div/div/div[1]/textarea') 
         
-        times = 1 # 들여쓰기 발생 횟수를 기록
-        flag = False # 들여쓰기가 최초 발생했다면 True
         for line in solution_lines:
             textarea.send_keys(line+'\n')
-            # if flag:
-            #     for i in range(4):
-            #         textarea.send_keys(Keys.BACK_SPACE)
-
-            if re.search(':', line) or flag:
-                for i in range(4 * times):
-                    textarea.send_keys(Keys.BACKSPACE)
-                times += 1
-                flag = True
-                
-            
-        time.sleep(30)
+            last_line = self.driver.find_elements(By.XPATH, '//*[@id="submit_form"]/div[3]/div/div/div[6]/div[1]/div/div/div/div[5]/div')[-1].text[1:]
+            nSpace = len(re.sub('[^ ]', '', last_line))
+            for i in range(nSpace):
+                textarea.send_keys(Keys.BACKSPACE)
+                        
 
 
         
@@ -183,12 +176,37 @@ class Crawler:
         # 백준 사이트는 들여쓰기 이후 줄바꿈을 하면 문장의 시작이 들여쓰기 한 부분에서 되도록했다.
         # 이 때문에 send_keys()로 제출하면 들여쓰기가 엉망이된다. 이 부분을 해결해야 한다.
 
+        # 이 문제의 해결책은 불필요한 들여쓰기를 제거하는 데 있다.
+        # 들여쓰기의 규칙성은 분명하다. 규칙은 다음과 같다.
+        # 1. 코드는 원래 정상적인 들여쓰기를 가지고 있다. 즉 불필요한 들여쓰기만 지운다면 문제없다.
+        # 2. 들여쓰기 이상은 들여쓰기가 필요한 :이 1차 발생하고 그 다음 줄부터 발생한다.
+        # 3. 발생하는 이유는 들여쓰기 이후 줄바꿈을 할 때 들여쓰기가 된 상태로 줄바꿈이 일어난다.
+        # 4. 그리고 한 줄이 늘어날 때마다 +1 칸이 늘어난다. 
+
+
+
         # # 코드 제출
-        # self.driver.find_element(By.XPATH, '//*[@id="submit_button"]').click()
+        self.driver.find_element(By.XPATH, '//*[@id="submit_button"]').click()
         
         # # 제출 결과 확인
         ## IDEA : tr[1]/td[4]/span의 text를 확인하고 "채점 중" 이란 단어가 있으면 기다린다
         ## 해당 단어가 사라지고 정답 표시가 있으면 정답을 그 외의 문제가 있으면 오답으로 처리하자. 
 
+        while True:
+            result_text = self.driver.find_element(By.XPATH, '//*[@id="status-table"]/tbody/tr/td[@class="result"]').text
+            if re.search('채점', result_text):
+                print(result_text)
+                time.sleep(1)
+            else:
+                print('결과 : ', result_text)
+                break
+        
+        self.driver.close()
+        if re.search('맞았습니다', result_text):
+            return True
+        else:
+            return False
+
+        
         # result = self.driver.find_element(By.XPATH, '//*[@id="status-table"]/tbody/tr[1]/td[4]/span').text
         # print(result)

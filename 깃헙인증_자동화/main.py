@@ -2,6 +2,8 @@
 
 '''
 import json
+import subprocess
+import os
 
 from DBUpdater import DBUpdater
 from crawler import Crawler
@@ -35,16 +37,21 @@ def get_solution_baekjoon_with_GPT(dbupdater, runGPT):
     print()
     print("GPT: 해결책을 드렸습니다.")
     return solution, number
-
-def summit(crawler, number, solution):
-    crawler.login_solved()
-    crawler.summit_solution(number, solution)
-
-    # 아래 코드는 백준에 제출 후, 정답이 나올 때 저장하도록 하자. 
-    # with open(f'{number}_solution.py', 'w') as f:
-    #     f.write(result_code)
     
+def summit(crawler, number, solution):
+    for _ in range(3):  
+        dbupdater.plus_attempt(number)
+        result = crawler.summit_solution(number, solution)
+        if result: # 결과가 정답이라면 저장
+            dbupdater.update_isSolved(number)
+            save_to_py(number, solution)
+            break
 
+def save_to_py(number, solution):
+    path = f"C:/Users/Kyeul/Desktop/code/GPT_자동화_저장소/{number}.py"
+
+    with open(path, 'w', encoding='utf8') as f:
+        f.write(solution)
 
 if __name__=='__main__':
 
@@ -70,21 +77,25 @@ if __name__=='__main__':
         df = getBaekjoonData(crawler)
         updateDBBaekjoon(dbupdater, df)
 
+    
     solution, number = get_solution_baekjoon_with_GPT(dbupdater, runGPT)
-
 
     # 이제부터 백준 사이트 자동화를 진행해야 함. 
     """
     로그인-문제 접근-언어 변경 및 제출- 결과 확인 - 틀릴 경우 반복(최대 3번)/맞은 경우 코드 저장
+    # 제출을 진행하지 않는다.
     """
     crawler = Crawler(id, pw)
+    crawler.login_solved()
     summit(crawler, number, solution)
+
 
     # 이제는 결과물을 자동으로 commit할 차례! 
     """
     batch 파일을 사용해 commit하기 - url링크를 슬랙봇으로 전송하기
     """
+    # batch_file = './git_command.bat'
+    # result = subprocess.run(batch_file, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
-
-
-
+    # print(result.stdout.decode('cp949'))
+    os.system("start cmd /k ./git_command.bat")

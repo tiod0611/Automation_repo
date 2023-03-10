@@ -82,7 +82,7 @@ class DBUpdater:
             curs.execute(sql)
         
         self.conn.commit()
-        print(f"{number} 문제를 해결했습니다.")
+        print(f"{number}, 미해결 -> 해결 / DB 업데이트 완료.")
 
     def select_problem(self):
         '''
