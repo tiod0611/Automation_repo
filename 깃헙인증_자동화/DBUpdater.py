@@ -4,9 +4,7 @@ DB에 데이터를 저장하거나, 데이터 변경을 진행하는 코드.
 > 추후에 크롤링 부분을 따로 분리할 예정임.
 '''
 
-import json
 import pymysql
-
 import pandas as pd
 
 
@@ -26,7 +24,7 @@ class DBUpdater:
                 number INT,
                 title VARCHAR(40),
                 level INT,
-                g_attempt Int,
+                g_attempt INT,
                 PRIMARY KEY (number)
             );
             
@@ -59,7 +57,7 @@ class DBUpdater:
         with self.conn.cursor() as curs:
             for r in df.itertuples(index=False):
                 print(r)
-                sql=f"REPLACE INTO problem_info VALUES ({r.number}, '{r.title}', {r.level});"
+                sql=f"REPLACE INTO problem_info VALUES ({r.number}, '{r.title}', {r.level}, {r.attempt});"
                 curs.execute(sql)
 
                 sql=f"REPLACE INTO attempt VALUES ({r.number}, 0, {r.isSolved});"
@@ -73,18 +71,56 @@ class DBUpdater:
         '''
         해결한 문제의 isSolved 값을 변경한다.
         '''
+
         with self.conn.cursor() as curs:
+
             sql=f"""
             UPDATE attempt
             SET isSolved = True
-            SET my_attempt = {여기서 변수 어떻게 줘야하지}
             WHERE number = {number};
             """
             curs.execute(sql)
         
         self.conn.commit()
-        print("f{number} 문제를 해결했습니다.")
-                
+        print(f"{number}, 미해결 -> 해결 / DB 업데이트 완료.")
+
+    def select_problem(self):
+        '''
+        해결할 문제를 선택하는 함수
+        return number, title
+        '''
+        with self.conn.cursor() as curs:
+            sql=f"""
+            SELECT problem_info.number, title, problem_info.g_attempt
+            FROM problem_info
+            INNER JOIN attempt
+            ON problem_info.number = attempt.number 
+            WHERE attempt.isSolved = False AND problem_info.g_attempt > 5000 AND my_attempt < 3;
+            """
+
+            df = pd.read_sql(sql, self.conn)
+            df.sort_values('g_attempt', ascending=False, inplace=True)
+            number = df.loc[0].number
+            title = df.loc[0].title
+
+            print(f"이번에 풀이할 문제는 '{number}', '{title}'입니다.")
+            return number, title
+
+    def plus_attempt(self, number):
+        '''
+        시도할 문제를 꺼냈다면 
+        attempt 테이블의 my_attempt(시도 횟수)를 + 1 갱신한다.
+        '''         
+        with self.conn.cursor() as curs:
+            sql=f"SELECT my_attempt FROM attempt WHERE number={number}"
+            curs.execute(sql)
+            my_attempt = curs.fetchone()[0]
+
+            sql=f"UPDATE attempt SET my_attempt = {my_attempt+1} WHERE number={number}"
+
+            curs.execute(sql)
+        self.conn.commit()
+        print(f"{number}문제의 시도 횟수: {my_attempt+1}")
 
 
 
