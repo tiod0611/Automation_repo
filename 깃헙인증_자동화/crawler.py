@@ -19,6 +19,7 @@ import time
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
 options = webdriver.ChromeOptions()
 options.add_argument('user-agent=' + user_agent)
+options.add_experimental_option("excludeSwitches", ["enable-logging"])
 
 class Crawler:
     def __init__(self, id, pw):

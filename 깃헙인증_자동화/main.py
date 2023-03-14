@@ -20,7 +20,7 @@ def updateDBBaekjoon(df):
     dbupdater.replace_into_db(df)
 
 
-def get_solution_baekjoon_with_GPT():
+def get_solution_baekjoon_from_GPT():
     number, title = dbupdater.select_problem() # DB에서 적정 문제 가져오기
 
     query = f"""
@@ -36,11 +36,16 @@ def get_solution_baekjoon_with_GPT():
     print()
     print("GPT: 해결책을 드렸습니다.")
     return solution, number
+
+def get_solution_and_summit(crawler):
+    solution, number = get_solution_baekjoon_from_GPT()
     
+
 def summit(crawler, number, solution):
     dbupdater.plus_attempt(number)
         
     result = crawler.summit_solution(number, solution)
+    
     if result: # 결과가 정답이라면 저장
         dbupdater.update_isSolved(number)
         save_to_py(number, solution)
@@ -48,8 +53,7 @@ def summit(crawler, number, solution):
     else:
         get_solution_and_summit(crawler)
 
-def get_solution_and_summit(crawler):
-    solution, number = get_solution_baekjoon_with_GPT()
+
 
     """
     로그인-문제 접근-언어 변경 및 제출- 결과 확인 - 틀릴 경우 반복(최대 3번)/맞은 경우 코드 저장
@@ -63,6 +67,8 @@ def save_to_py(number, solution):
     path = f"C:/Users/Kyeul/Desktop/code/baekjoon_gpt_solution/{number}.py"
 
     with open(path, 'w', encoding='utf8') as f:
+        f.write('# 아래 코드는 ChatGPT가 자동으로 생성한 코드입니다.\n')
+        f.write(f'# 문제 정보: {number}')
         f.write(solution)
 
     print(f"코드 결과물 '{number}.py'로 저장함")        
@@ -97,6 +103,7 @@ if __name__=='__main__':
     crawler.login_solved()
     for _ in range(3):
         isSolved = get_solution_and_summit(crawler)
+        
         if isSolved: # 정답이라면 commit~!
             os.system("start cmd /k git_command.bat")
             os.system("exit")
