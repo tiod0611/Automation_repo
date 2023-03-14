@@ -37,9 +37,6 @@ def get_solution_baekjoon_from_GPT():
     print("GPT: 해결책을 드렸습니다.")
     return solution, number
 
-def get_solution_and_summit(crawler):
-    solution, number = get_solution_baekjoon_from_GPT()
-    
 
 def summit(crawler, number, solution):
     dbupdater.plus_attempt(number)
@@ -50,17 +47,7 @@ def summit(crawler, number, solution):
         dbupdater.update_isSolved(number)
         save_to_py(number, solution)
         return True
-    else:
-        get_solution_and_summit(crawler)
 
-
-
-    """
-    로그인-문제 접근-언어 변경 및 제출- 결과 확인 - 틀릴 경우 반복(최대 3번)/맞은 경우 코드 저장
-    """
-
-    
-    return summit(crawler, number, solution)
 
 
 def save_to_py(number, solution):
@@ -101,13 +88,18 @@ if __name__=='__main__':
 
     crawler = Crawler(id, pw)
     crawler.login_solved()
-    for _ in range(3):
-        isSolved = get_solution_and_summit(crawler)
+    # for _ in range(3):
+    while True:
+        # isSolved = get_solution_and_summit(crawler)
+        solution, number = get_solution_baekjoon_from_GPT()
+        isSolved = summit(crawler, number, solution)
         
         if isSolved: # 정답이라면 commit~!
             os.system("start cmd /k git_command.bat")
             os.system("exit")
             print('Github Commit도 완료!')
             break
+        else:
+            print("[재도전]  ", end='')
 
     

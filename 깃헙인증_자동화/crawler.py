@@ -154,7 +154,7 @@ class Crawler:
 
         self.driver.get(summit_url) # 문제 제출 페이지에 접근
 
-        self.driver.find_element(By.XPATH, '//*[@id="submit_form"]/div[2]/div/div[3]/label').click()
+        self.driver.find_element(By.XPATH, '//*[@id="submit_form"]/div[2]/div/div[2]/label').click() # 공개범위 클릭
 
         # 코드 작성을 위해 입력창을 클릭함
         self.driver.find_element(By.XPATH, '//*[@id="submit_form"]/div[3]/div/div/div[6]').click()
