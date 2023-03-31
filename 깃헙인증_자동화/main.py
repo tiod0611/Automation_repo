@@ -55,7 +55,7 @@ def save_to_py(number, solution):
 
     with open(path, 'w', encoding='utf8') as f:
         f.write('# 아래 코드는 ChatGPT가 자동으로 생성한 코드입니다.\n')
-        f.write(f'# 문제 정보: {number}')
+        f.write(f'# 문제 정보: {number}\n')
         f.write(solution)
 
     print(f"코드 결과물 '{number}.py'로 저장함")        
@@ -86,14 +86,14 @@ if __name__=='__main__':
         df = getBaekjoonData(crawler)
         updateDBBaekjoon(dbupdater, df)
 
+    solution, number = get_solution_baekjoon_from_GPT()
+
     crawler = Crawler(id, pw)
     crawler.login_solved()
-    # for _ in range(3):
+
     while True:
-        # isSolved = get_solution_and_summit(crawler)
-        solution, number = get_solution_baekjoon_from_GPT()
         isSolved = summit(crawler, number, solution)
-        
+
         if isSolved: # 정답이라면 commit~!
             os.system("start cmd /k git_command.bat")
             os.system("exit")
@@ -101,5 +101,6 @@ if __name__=='__main__':
             break
         else:
             print("[재도전]  ", end='')
+            solution, number = get_solution_baekjoon_from_GPT()
 
     
