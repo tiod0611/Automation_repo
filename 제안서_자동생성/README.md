@@ -12,15 +12,15 @@
 ## example images
 
 1. Prompt
-![](./img/prompt.png)
+![prompt](./img/prompt.png)
 
 2. Metadata
 
-   ![](C:\Users\kyeul\Desktop\code\Automation\제안서_자동생성\img\metadata.png)
+   ![metadata](./img/metadata.png)
 
 3. Result
 
-   ![](C:\Users\kyeul\Desktop\code\Automation\제안서_자동생성\img\result.png)
+   ![result](./img/result.png)
 
 
 
