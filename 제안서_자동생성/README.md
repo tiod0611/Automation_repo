@@ -12,7 +12,7 @@
 ## example images
 
 1. Prompt
-![prompt](./img/prompt.png)
+![prompt](./img/gpt-prompt.png)
 
 2. Metadata
 
