@@ -151,9 +151,6 @@ class GetCourses:
         for i in range(len(lectureBtns)):
             print(f"{lectureNames[i]} : {lectureBtns[i]}")
 
-        print()
-        print()
-        print()
         print(lectureNames)
 
         elementNum = 1
@@ -168,31 +165,30 @@ class GetCourses:
 
             for i in range(2):
                 #과목명 변수
-                # lectureName = self.driver.find_element(By.XPATH, '//*[@id="GridBasket"]/tbody/tr[@id="{}"]/td[2]'.format(elementNum)).text
-                # selectBtn = self.driver.find_element(By.XPATH, '//*[@id="GridBasket"]/tbody/tr[@id="{}"]/td[1]/button'.format(elementNum))                
-                # selectBtn.click()
+                lectureName = self.driver.find_element(By.XPATH, '//*[@id="GridBasket"]/tbody/tr[@id="{}"]/td[2]'.format(elementNum)).text
+                selectBtn = self.driver.find_element(By.XPATH, '//*[@id="GridBasket"]/tbody/tr[@id="{}"]/td[1]/button'.format(elementNum))                
+                selectBtn.click()
 
                 lectureBtns[elementNum].click()
 
                 ## 테스트를 위한 확인 출력문
-                # print(lectureName, f": 클릭함 {iters}-{i}")   
+                print(lectureName, f": 클릭함 {iters}-{i}")   
                 print(lectureNames[elementNum], f": 클릭함 {iters}-{i}")
                 time.sleep(2)
 
-                # time.sleep(0.1)
+                time.sleep(0.1)
                 # 알림창이 있는 지 검사
-                # while True: # 알림창이 계속 있으면 없을 때까지 반복
-                #     reset = self.checkAlert()
-                #     if reset == False:
-                #         break
-            print("+++++ 여기는 도달했을까?")
+                while True: # 알림창이 계속 있으면 없을 때까지 반복
+                    reset = self.checkAlert()
+                    if reset == False:
+                        break
             if reset == True: 
                 # 수강신청이 성공했다면 페이지가 리셋되고, 테이블이 변경되었을 것이다.
                 # 따라서 테이블 요소를 다시 가져와야 한다. 
-                # table_tr = driver.find_elements(By.XPATH, '//*[@id="GridBasket"]/tbody/tr')
+                table_tr = driver.find_elements(By.XPATH, '//*[@id="GridBasket"]/tbody/tr')
 
-                # self.sendMessage(lectureName) # 슬랙봇으로 메시지 출력
-                # print(f"<{lectureName}> 수강신청 성공~!")
+                self.sendMessage(lectureName) # 슬랙봇으로 메시지 출력
+                print(f"<{lectureName}> 수강신청 성공~!")
                 
                 
                 self.sendMessage(lectureNames[elementNum]) # 슬랙봇으로 메시지 출력
