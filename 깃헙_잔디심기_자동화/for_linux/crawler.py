@@ -38,13 +38,14 @@ class Crawler:
         self.id = id
         self.pw = pw
 
-        self.driver = webdriver.Chrome()
+        self.driver = webdriver.Chrome(options=options)
         self.wait = WebDriverWait(self.driver, 30)
 
     def login_solved(self):
         '''
         solved 웹사이트에 접속해서 계정으로 로그인한다.
         '''
+        print("백준 로그인 시도")
         login_url = "https://www.acmicpc.net/login?next=%2Fsso%3Fsso%3Dbm9uY2U9YTM5YWVhYTk4MWNhYjU1YWEwZDRlZDQ4Nzc3NzEzOGM%253D%26sig%3D1ca260b9abbbe4df2b002254dd94a7f31b373ff0270b243408963284f8fcd7a1%26redirect%3Dhttps%253A%252F%252Fsolved.ac%252Fapi%252Fv3%252Fauth%252Fsso%253Fprev%253D%25252F"
         self.driver.get(login_url)
 
@@ -70,13 +71,15 @@ class Crawler:
         login_bt_2 = self.driver.find_element(By.XPATH, '//*[@id="login_form"]/div[4]/div[2]/a')
         login_bt_2.click()
 
+        print("로그인 완료")
+
         # 문제 없이 진행되었다면 로그인이 잘 되었을 것이다. 
 
     def read_solved(self):
         '''
         솔브드 레벨을 순회하며 문제 정보를 스크래핑한다.
         '''
-        
+        print("백준 문제 수집을 진행합니다.")
         def has_korean(text):
             '''
             텍스트에 한글을 포함하고 있는지 확인하는 코드

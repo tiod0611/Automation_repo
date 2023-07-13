@@ -85,6 +85,7 @@ if __name__=='__main__':
 
     # 데이터베이스를 업데이트 한다면 
     if init_db:
+        print("DB 업데이트를 시도합니다.")
         crawler = Crawler(id, pw)
         df = getBaekjoonData(crawler)
         updateDBBaekjoon(dbupdater, df)
