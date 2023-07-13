@@ -16,7 +16,7 @@ class DBUpdater:
         최초 실행시 테이블을 생성한다.
         """
 
-        self.conn = pymysql.connect(host='127.0.0.1', user='root', password=db_pw, db='baekjoon', charset='utf8')
+        self.conn = pymysql.connect(host='localhost', user='root', password=db_pw, db='baekjoon', charset='utf8')
 
         with self.conn.cursor() as curs:
             sql="""
